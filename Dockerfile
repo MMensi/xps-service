@@ -1,45 +1,19 @@
-# Use a specific Python 3.9 base image
-FROM python:3.7-slim
+# The build-stage image:
+FROM continuumio/miniconda3
 
-# Set environment variables
-ENV LANG=C.UTF-8
+RUN conda install python=3.9 -y
+#RUN conda install rdkit -c rdkit -y
+RUN conda install xtb-python -c conda-forge -y
 
-# Install required system packages in one step to minimize layers
-RUN apt-get update && apt-get install -y \
-    libxext6 \
-    libxrender-dev \
-    wget \
-    gfortran \
-    && apt-get clean \
-    && rm -rf /var/lib/apt/lists/*
 
-# Download and install Miniconda
-RUN wget https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh -O miniconda.sh \
-    && bash miniconda.sh -b -p /opt/conda \
-    && rm miniconda.sh
+COPY requirements.txt .
+RUN pip install --no-cache-dir -r requirements.txt
+#RUN pip install -r requirements.txt
 
-# Set PATH to use conda
-ENV PATH="/opt/conda/bin:$PATH"
+COPY README.md .
+COPY xpsservice ./xpsservice
+#COPY xpscache ./xpscache
+COPY SOAP_configs ./SOAP_configs
+COPY ML_models ./ML_models
 
-# Create a new conda environment with Python 3.9
-RUN /opt/conda/bin/conda create --name myenv python=3.7 -y
-
-# Activate the environment and install required packages in one command
-RUN /opt/conda/bin/conda install -n myenv rdkit -c rdkit -y \
-    && /opt/conda/bin/conda clean --all
-
-# Set the working directory
-WORKDIR /app
-
-# Copy application files to the working directory
-COPY requirements.txt /app/
-COPY xps /app/xps/
-COPY README.md /app/
-
-# Install Python dependencies in the conda environment
-#RUN /opt/conda/envs/myenv/bin/pip install --no-cache-dir -r requirements.txt #for prod
-RUN /opt/conda/envs/myenv/bin/pip install -r requirements.txt #for dev only
-
-# Set the entrypoint and command to run the application
-ENTRYPOINT ["/opt/conda/envs/myenv/bin/gunicorn"]
-CMD ["-w", "4", "xps.main:app", "-b", "0.0.0.0", "-k", "uvicorn.workers.UvicornWorker", "-t", "30", "--keep-alive", "30"]
+CMD gunicorn -w $WORKERS xpsservice.xpsservice:app -b 0.0.0.0:$PORT -k uvicorn.workers.UvicornWorker -t $TIMEOUT --keep-alive $TIMEOUT

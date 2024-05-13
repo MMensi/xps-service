@@ -1,3 +1,3 @@
 #!/bin/bash
 
-docker build -t xps .
+docker build -t xps-service .

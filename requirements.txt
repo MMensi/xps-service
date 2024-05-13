@@ -1,29 +1,15 @@
-#fastapi== 0.68.1
-#gunicorn==20.1.0
-#uvicorn==0.15
-#httptools==0.3.0
-#uvloop==0.15
-#scikit-learn==1.2.2
-#diskcache
-#fastapi_versioning
-#wrapt_timeout_decorator
-#requests
-#ase
-#quippy-ase
-#xtb
-
-#-c rdkit  # Specify the RDKit channel
-
-fastapi==0.68.1
+rdkit
+fastapi== 0.68.1
 gunicorn==20.1.0
-uvicorn==0.15.0
+uvicorn==0.15
 httptools==0.3.0
-uvloop==0.15.0
-scikit-learn
+uvloop==0.15
+git+https://github.com/kjappelbaum/ase.git@polarizability
+scikit-learn == 1.2.2
 diskcache
 fastapi_versioning
 wrapt_timeout_decorator
 requests
 ase
+quippy
 quippy-ase
-xtb
